@@ -1,0 +1,8 @@
+{
+  "name": "Pipewire Settings",
+  "description": "Set Pipewire's buffer size and samplerate",
+  "uuid": "pipewire-settings@gaheldev.github.com",
+  "shell-version": [
+    "46"
+  ]
+}
