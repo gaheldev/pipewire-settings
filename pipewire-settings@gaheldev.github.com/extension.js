@@ -46,10 +46,15 @@ class Indicator extends PanelMenu.Button {
         ['44100', '48000', '88200', '96000'].forEach(rate => {
             sampleRateItem.menu.addAction(rate + ' Hz', () => {
                 this._setSampleRate(parseInt(rate));
+                // this._updateSampleRateSelection(rate);
             });
+            
         });
-        sampleRateItem.setOrnament(PopupMenu.Ornament.DOT);
+            
         this.menu.addMenuItem(sampleRateItem);
+
+        // separator
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
 
         // ---------- Buffer size -------------
@@ -60,6 +65,9 @@ class Indicator extends PanelMenu.Button {
             });
         });
         this.menu.addMenuItem(bufferSizeItem);
+
+        // separator
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
 
         // ---------- Current Settings -------------
@@ -72,24 +80,22 @@ class Indicator extends PanelMenu.Button {
 
     }
 
+    _updateSampleRateSelection(selectedRate) {
+        // Update the radio button selection for all menu items
+        for (const [rate, menuItem] of Object.entries(this._sampleRateMenuItems)) {
+            menuItem.setOrnament(
+                rate === selectedRate ? PopupMenu.Ornament.DOT : PopupMenu.Ornament.NONE
+            );
+        }
+    }
+
     _setSampleRate(rate) {
         try {
-            const proc = Gio.Subprocess.new(['pw-metadata', '-n', 'settings', '0', 'clock.force-rate', `${rate}`],
-                Gio.SubprocessFlags.NONE);
-
-            // // NOTE: triggering the cancellable passed to these functions will only
-            // //       cancel the function NOT the process.
-            // const cancellable = new Gio.Cancellable();
-            //
-            // // Strictly speaking, the only error that can be thrown by
-            // // this function is Gio.IOErrorEnum.CANCELLED.
-            // await proc.wait_async(cancellable);
-            //
-            // // The process has completed and you can check the exit status or
-            // // ignore it if you just need notification the process completed.
-            // if (proc.get_successful())
-                this._updateCurrentSettings();
-            // }
+            const proc = Gio.Subprocess.new(
+                ['pw-metadata', '-n', 'settings', '0', 'clock.force-rate', `${rate}`],
+                Gio.SubprocessFlags.NONE
+            );
+            this._updateCurrentSettings();
         } catch (e) {
             logError(e);
         }
@@ -97,23 +103,11 @@ class Indicator extends PanelMenu.Button {
 
     _setBufferSize(size) {
         try {
-            log(size);
-            const proc = Gio.Subprocess.new(['pw-metadata', '-n', 'settings', '0', 'clock.force-quantum', `${size}`],
-                Gio.SubprocessFlags.NONE);
-
-            // NOTE: triggering the cancellable passed to these functions will only
-            //       cancel the function NOT the process.
-            // const cancellable = new Gio.Cancellable();
-
-            // Strictly speaking, the only error that can be thrown by
-            // this function is Gio.IOErrorEnum.CANCELLED.
-            // await proc.wait_async(cancellable);
-
-            // The process has completed and you can check the exit status or
-            // ignore it if you just need notification the process completed.
-            // if (proc.get_successful())
-                this._updateCurrentSettings();
-            // }
+            const proc = Gio.Subprocess.new(
+                ['pw-metadata', '-n', 'settings', '0', 'clock.force-quantum', `${size}`],
+                Gio.SubprocessFlags.NONE
+            );
+            this._updateCurrentSettings();
         } catch (e) {
             logError(e);
         }
@@ -122,19 +116,9 @@ class Indicator extends PanelMenu.Button {
     _updateCurrentSettings() {
         runCommandAsync('pw-metadata', ['-n', 'settings', '0'])
             .then(stdout => {
-                // log(stdout);
-                // const output = ByteArray.toString(stdout); // FIXME: this fails, ByteArray is not known
-                // const output = String.fromCharCode(stdout); 
-                // const output = String.fromCharCode.apply(null, stdout);
-                // const output = stdout.map(c => String.fromCharCode(c)).join('');
-                // const output = TextDecoder.decode(stdout);
-                log('---------------------------------------');
                 const output = stdout;
-                log(output)
                 const rateMatch = output.match(/clock\.force-rate\'\s*value:\'(\d+)/);
-                log(rateMatch);
                 const sizeMatch = output.match(/clock\.force-quantum\'\s*value:\'(\d+)/);
-                log(sizeMatch);
                 
                 const rate = rateMatch ? rateMatch[1] : 'default';
                 const size = sizeMatch ? sizeMatch[1] : 'default';
