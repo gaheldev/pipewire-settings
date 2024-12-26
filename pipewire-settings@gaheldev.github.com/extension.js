@@ -19,8 +19,8 @@
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
 
-const ByteArray = imports.byteArray;
 
 /* Gio.Subprocess */
 Gio._promisify(Gio.Subprocess.prototype, "communicate_utf8_async");
@@ -41,34 +41,27 @@ class Indicator extends PanelMenu.Button {
             style_class: 'system-status-icon',
         }));
 
+        this.sampleRate = this._getSampleRate();
+        this.bufferSize = this._getBufferSize();
+
         // ---------- Samplerate -------------
-        const sampleRateItem = new PopupMenu.PopupSubMenuMenuItem('Sample Rate');
-        ['44100', '48000', '88200', '96000'].forEach(rate => {
-            sampleRateItem.menu.addAction(rate + ' Hz', () => {
-                this._setSampleRate(parseInt(rate));
-                // this._updateSampleRateSelection(rate);
-            });
-            
-        });
-            
-        this.menu.addMenuItem(sampleRateItem);
+        this.sampleRateItem = new PopupMenu.PopupSubMenuMenuItem('Sample Rate');
+        this.menu.addMenuItem(this.sampleRateItem);
 
         // separator
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-
 
         // ---------- Buffer size -------------
-        const bufferSizeItem = new PopupMenu.PopupSubMenuMenuItem('Buffer Size');
-        ['32', '64', '128', '256', '512', '1024', '2048'].forEach(size => {
-            bufferSizeItem.menu.addAction(size + ' frames', () => {
-                this._setBufferSize(parseInt(size));
-            });
-        });
-        this.menu.addMenuItem(bufferSizeItem);
+            // TODO
+        this.bufferSizeItem = new PopupMenu.PopupSubMenuMenuItem('Buffer Size');
+        this.menu.addMenuItem(this.bufferSizeItem);
 
         // separator
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
+        // ---------- Populate Submenus -------------
+        this._populateSamplerates();
+        this._populateBuffers();
 
         // ---------- Current Settings -------------
         this._currentSettings = new PopupMenu.PopupMenuItem('Current Settings', {
@@ -80,12 +73,99 @@ class Indicator extends PanelMenu.Button {
 
     }
 
-    _updateSampleRateSelection(selectedRate) {
-        // Update the radio button selection for all menu items
-        for (const [rate, menuItem] of Object.entries(this._sampleRateMenuItems)) {
-            menuItem.setOrnament(
-                rate === selectedRate ? PopupMenu.Ornament.DOT : PopupMenu.Ornament.NONE
-            );
+    _resetActions() {
+        this.sampleRateItem.menu.removeAll();
+        this.bufferSizeItem.menu.removeAll();
+        this._populateSamplerates();
+        this._populateBuffers();
+    }
+
+    _getSampleRateIcon(forceRate) {
+        let ok = 'emblem-ok-symbolic';
+        let nope = 'goa-account-symbolic'; // goa is an empty icon -> probably a hack?
+
+        if (!this._isForceSampleRate())
+            if (forceRate === '0') return ok;
+            else return nope;
+
+        if (forceRate === this.sampleRate) return ok;
+        else return nope;
+    }
+
+    _populateSamplerates() {
+        this._allowedForceRates().forEach(rate => {
+            let display = rate === '0' ? 'Dynamic (default)' : rate + ' Hz';
+            this.sampleRateItem.menu.addAction(display, () => {
+                this._setSampleRate(parseInt(rate));
+            }, this._getSampleRateIcon(rate))
+        });
+    }
+
+    _getBufferSizeIcon(forceSize) {
+        log(forceSize);
+        let ok = 'emblem-ok-symbolic';
+        let nope = 'goa-account-symbolic'; // goa is an empty icon -> probably a hack?
+
+        if (!this._isForceBufferSize())
+            if (forceSize === '0') return ok;
+            else return nope;
+
+        if (forceSize === this.bufferSize) return ok;
+        else return nope;
+    }
+
+    _populateBuffers() {
+        this._allowedForceQuantums().forEach(size => {
+            let display = size === '0' ? 'Dynamic (default)' : size;
+            this.bufferSizeItem.menu.addAction(display, () => {
+                this._setBufferSize(parseInt(size));
+            }, this._getBufferSizeIcon(size))
+        });
+    }
+
+    // TODO: get actual allowed ones?
+    _allowedForceRates() {
+        return ['0', '44100', '48000', '88200', '96000'];
+    }
+
+    // TODO: get actual allowed ones?
+    _allowedForceQuantums() {
+        return ['0', '32', '64', '128', '256', '512', '1024', '2048'];
+    }
+
+    _isForceSampleRate() {
+        let stdout = runCommand('pw-metadata', ['-n', 'settings', '0']);
+        const forceRateMatch = stdout.match(/clock\.force-rate\'\s*value:\'(\d+)/);
+        return forceRateMatch[1] !== '0';
+    }
+
+    _isForceBufferSize() {
+        let stdout = runCommand('pw-metadata', ['-n', 'settings', '0']);
+        const forceQuantumMatch = stdout.match(/clock\.force-quantum\'\s*value:\'(\d+)/);
+        return forceQuantumMatch[1] !== '0';
+    }
+
+    /// return forced samplerate if defined, else default one
+    _getSampleRate() {
+        let stdout = runCommand('pw-metadata', ['-n', 'settings', '0']);
+        const forceRateMatch = stdout.match(/clock\.force-rate\'\s*value:\'(\d+)/);
+        if (forceRateMatch[1] !== '0') {
+                return forceRateMatch[1];
+        } else {
+            const rateMatch = stdout.match(/clock\.rate\'\s*value:\'(\d+)/);
+            return rateMatch[1];
+        }
+    }
+
+    /// return forced quantum if defined, else default one
+    _getBufferSize() {
+        let stdout = runCommand('pw-metadata', ['-n', 'settings', '0']);
+        const forceQuantumMatch = stdout.match(/clock\.force-quantum\'\s*value:\'(\d+)/);
+        if (forceQuantumMatch[1] !== '0') {
+                return forceQuantumMatch[1];
+        } else {
+            const quantumMatch = stdout.match(/clock\.quantum\'\s*value:\'(\d+)/);
+            return quantumMatch[1];
         }
     }
 
@@ -113,19 +193,30 @@ class Indicator extends PanelMenu.Button {
         }
     }
 
-    _updateCurrentSettings() {
+    _updateBufferSize() {
         runCommandAsync('pw-metadata', ['-n', 'settings', '0'])
             .then(stdout => {
                 const output = stdout;
-                const rateMatch = output.match(/clock\.force-rate\'\s*value:\'(\d+)/);
-                const sizeMatch = output.match(/clock\.force-quantum\'\s*value:\'(\d+)/);
+                const bufferMatch = output.match(/clock\.quantum\'\s*value:\'(\d+)/);
                 
-                const rate = rateMatch ? rateMatch[1] : 'default';
-                const size = sizeMatch ? sizeMatch[1] : 'default';
-                
+                this.bufferSize = rateMatch[1];
+            })
+            .catch(error => {
+                logError(error);
+            });
+    }
+
+    _updateCurrentSettings() {
+        runCommandAsync('pw-metadata', ['-n', 'settings', '0'])
+            .then(stdout => {
+                this.sampleRate = this._getSampleRate();
+                this.bufferSize = this._getBufferSize();
+
                 this._currentSettings.label.text = 
-                    `Current: ${rate}Hz, ${size} frames`;
+                    `Current: ${this.sampleRate}Hz, ${this.bufferSize} frames`;
                 log(this._currentSettings.label.text);
+
+                this._resetActions();
             })
             .catch(error => {
                 logError(error);
@@ -142,7 +233,7 @@ function logToFile(message) {
     out.close(null);
 }
 
-// Function to run a command and wait for it to finish
+// Function to run an async command and wait for it to finish
 function runCommandAsync(command, args) {
     return new Promise((resolve, reject) => {
         let subprocess = new Gio.Subprocess({
@@ -165,6 +256,23 @@ function runCommandAsync(command, args) {
             }
         });
     });
+}
+
+// Function to run a command synchronously and wait for it to finish
+function runCommand(command, args) {
+        let subprocess = new Gio.Subprocess({
+            argv: [command, ...args],
+            flags: Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE,
+        });
+
+        subprocess.init(null);
+
+        let [ok, stdout, stderr] = subprocess.communicate_utf8(null, null);
+        if (ok) {
+            return stdout;
+        } else {
+            throw (new Error(stderr));
+        }
 }
 
 
