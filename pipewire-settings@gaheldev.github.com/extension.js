@@ -45,15 +45,14 @@ class Indicator extends PanelMenu.Button {
         this.bufferSize = this._getBufferSize();
 
         // ---------- Samplerate -------------
-        this.sampleRateItem = new PopupMenu.PopupSubMenuMenuItem('Sample Rate');
+        this.sampleRateItem = new PopupMenu.PopupSubMenuMenuItem('Samplerate');
         this.menu.addMenuItem(this.sampleRateItem);
 
         // separator
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
         // ---------- Buffer size -------------
-            // TODO
-        this.bufferSizeItem = new PopupMenu.PopupSubMenuMenuItem('Buffer Size');
+        this.bufferSizeItem = new PopupMenu.PopupSubMenuMenuItem('Buffer size');
         this.menu.addMenuItem(this.bufferSizeItem);
 
         // separator
@@ -63,14 +62,14 @@ class Indicator extends PanelMenu.Button {
         this._populateSamplerates();
         this._populateBuffers();
 
-        // ---------- Current Settings -------------
-        this._currentSettings = new PopupMenu.PopupMenuItem('Current Settings', {
-            reactive: false
-        });
-        this.menu.addMenuItem(this._currentSettings);
+        // ---------- Restore defaults -------------
+        this.restoreItem = new PopupMenu.PopupMenuItem('Restore defaults');
+        this.restoreItem.connect('activate', () => {this._restoreDefaults();});
+        this.menu.addMenuItem(this.restoreItem);
 
-        this._updateCurrentSettings();
-
+        // update samplerates and buffer sizes when the menu opens
+        // workaround to avoid segmentation faults when using _resetActions
+        this.menu.connect('open-state-changed', (menu, open) => { if (open) this._updateMenu(); });
     }
 
     _resetActions() {
@@ -78,6 +77,11 @@ class Indicator extends PanelMenu.Button {
         this.bufferSizeItem.menu.removeAll();
         this._populateSamplerates();
         this._populateBuffers();
+    }
+
+    _restoreDefaults() {
+        this._setSampleRate(0);
+        this._setBufferSize(0);
     }
 
     _getSampleRateIcon(forceRate) {
@@ -102,7 +106,6 @@ class Indicator extends PanelMenu.Button {
     }
 
     _getBufferSizeIcon(forceSize) {
-        log(forceSize);
         let ok = 'emblem-ok-symbolic';
         let nope = 'goa-account-symbolic'; // goa is an empty icon -> probably a hack?
 
@@ -175,7 +178,6 @@ class Indicator extends PanelMenu.Button {
                 ['pw-metadata', '-n', 'settings', '0', 'clock.force-rate', `${rate}`],
                 Gio.SubprocessFlags.NONE
             );
-            this._updateCurrentSettings();
         } catch (e) {
             logError(e);
         }
@@ -187,76 +189,25 @@ class Indicator extends PanelMenu.Button {
                 ['pw-metadata', '-n', 'settings', '0', 'clock.force-quantum', `${size}`],
                 Gio.SubprocessFlags.NONE
             );
-            this._updateCurrentSettings();
         } catch (e) {
             logError(e);
         }
     }
 
-    _updateBufferSize() {
-        runCommandAsync('pw-metadata', ['-n', 'settings', '0'])
-            .then(stdout => {
-                const output = stdout;
-                const bufferMatch = output.match(/clock\.quantum\'\s*value:\'(\d+)/);
-                
-                this.bufferSize = rateMatch[1];
-            })
-            .catch(error => {
-                logError(error);
-            });
-    }
+    _updateMenu() {
+        this.sampleRate = this._getSampleRate();
+        this.bufferSize = this._getBufferSize();
 
-    _updateCurrentSettings() {
-        runCommandAsync('pw-metadata', ['-n', 'settings', '0'])
-            .then(stdout => {
-                this.sampleRate = this._getSampleRate();
-                this.bufferSize = this._getBufferSize();
+        let suffix = this._isForceSampleRate() ? '' : ' (dyn)';
+        this.sampleRateItem.label.text = `Samplerate：${this.sampleRate} Hz` + suffix;
 
-                this._currentSettings.label.text = 
-                    `Current: ${this.sampleRate}Hz, ${this.bufferSize} frames`;
-                log(this._currentSettings.label.text);
+        suffix = this._isForceBufferSize() ? '' : ' (dyn)';
+        this.bufferSizeItem.label.text = `Buffer size：${this.bufferSize}` + suffix;
 
-                this._resetActions();
-            })
-            .catch(error => {
-                logError(error);
-            });
+        this._resetActions();
     }
 });
 
-function logToFile(message) {
-    let logfile = '/home/gael/gnome-shell-extension.log';
-    let file = Gio.File.new_for_path(logfile);
-    let outputStream = file.append_to(Gio.FileCreateFlags.NONE, null);
-    let out = new Gio.DataOutputStream({ base_stream: outputStream });
-    out.put_string(`${new Date().toISOString()} - ${message}\n`, null);
-    out.close(null);
-}
-
-// Function to run an async command and wait for it to finish
-function runCommandAsync(command, args) {
-    return new Promise((resolve, reject) => {
-        let subprocess = new Gio.Subprocess({
-            argv: [command, ...args],
-            flags: Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE,
-        });
-
-        subprocess.init(null);
-
-        subprocess.communicate_utf8_async(null, null, (proc, res) => {
-            try {
-                let [ok, stdout, stderr] = proc.communicate_utf8_finish(res);
-                if (ok) {
-                    resolve(stdout);
-                } else {
-                    reject(new Error(stderr));
-                }
-            } catch (e) {
-                reject(e);
-            }
-        });
-    });
-}
 
 // Function to run a command synchronously and wait for it to finish
 function runCommand(command, args) {
