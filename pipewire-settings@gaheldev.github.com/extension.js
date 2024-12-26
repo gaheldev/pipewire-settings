@@ -205,7 +205,7 @@ class Indicator extends PanelMenu.Button {
         this.bufferSizeItem.label.text = `Buffer size：${this.bufferSize}` + suffix;
 
         // only make restore button clickable when not in default settings
-        this.restoreItem.reactive = this._isForceSampleRate() || this._isForceSampleRate();
+        this.restoreItem.reactive = this._isForceSampleRate() || this._isForceBufferSize();
 
         this._resetActions();
     }
