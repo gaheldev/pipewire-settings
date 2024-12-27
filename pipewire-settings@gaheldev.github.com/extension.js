@@ -37,8 +37,9 @@ class Indicator extends PanelMenu.Button {
         super._init(0.5, _('Pipewire settings menu'));
 
         // custom icon
+        let pipewireIcon = 'pipewire-condensed-symbolic.svg' // alternative: pipewire-condensed-rings-symbolic.svg
         const Me = Extension.lookupByURL(import.meta.url);
-        let iconPath = `${Me.path}/icons/pipewire-condensed-symbolic.svg`;
+        let iconPath = `${Me.path}/icons/${pipewireIcon}`;
         let gicon = Gio.icon_new_for_string(`${iconPath}`);
         let icon = new St.Icon({ gicon: gicon, style_class: 'system-status-icon', icon_size: 16 });
 

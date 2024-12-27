@@ -1,13 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
-	<circle r="2" cx="14" cy="2" fill="white" />
-	<circle r="2" cx="8" cy="2" fill="white" />
-	<circle r="2" cx="2" cy="14" fill="#fff" />
-	<circle r="2" cx="2" cy="2" fill="#fff" />
-	<path />
+	<circle r="2" cx="-4" cy="2" fill="white" />
 	<line x1="8" y1="10.5" y2="3.5" x2="8" stroke="white" stroke-linecap="butt" stroke-width="2" />
 	<line x1="14" y1="7.5" y2="3.5" x2="14" stroke="white" stroke-linecap="butt" stroke-width="2" />
 	<line x1="8" y1="10.5" y2="7.5" x2="14" stroke="white" stroke-linecap="round" stroke-width="2" />
 	<line x1="2" y1="10.5" y2="7.5" x2="8" stroke="white" stroke-linecap="butt" stroke-width="2" />
 	<line x1="2" y1="12.5" y2="3.5" x2="2" stroke="white" stroke-linecap="butt" stroke-width="2" />
-	<path />
+	<path d="m2 13a1 1 0 000 2 1 1 0 000-2zm0-1a2 2 0 110 4 2 2 0 110-4z" fill="#fff" />
+	<path d="m2 1a1 1 0 000 2 1 1 0 000-2zm0-1a2 2 0 110 4 2 2 0 110-4z" fill="#fff" />
+	<path d="m14 1a1 1 0 000 2 1 1 0 000-2zm0-1a2 2 0 110 4 2 2 0 110-4z" fill="#fff" />
+	<path d="m8 1a1 1 0 000 2 1 1 0 000-2zm0-1a2 2 0 110 4 2 2 0 110-4z" fill="#fff" />
 </svg>
