@@ -1,6 +1,9 @@
-# Pipewire top bar settings for Gnome Shell
+# pipewire-settings
+Minimal pipewire config menu for Gnome Shell
 
-![image](https://github.com/user-attachments/assets/c3920d2a-9f99-4a52-834c-0f8ecf4883c1)
+> [![license]](/LICENSE.md)
+
+![pipewire-settings-menu](https://github.com/user-attachments/assets/6b364340-4fd1-4007-9cde-e4c709a0d55c)
 
 ## Installation
 Clone the project and simply run install:
