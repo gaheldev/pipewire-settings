@@ -1,7 +1,7 @@
 # pipewire-settings
-Minimal pipewire config menu for Gnome Shell
+Minimal pipewire configuration menu for Gnome Shell
 
-> [![license]](/LICENSE.md)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](/LICENSE.md)
 
 ![pipewire-settings-menu](https://github.com/user-attachments/assets/6b364340-4fd1-4007-9cde-e4c709a0d55c)
 
