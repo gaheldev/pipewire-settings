@@ -36,10 +36,13 @@ class Indicator extends PanelMenu.Button {
     _init() {
         super._init(0.5, _('Pipewire settings menu'));
 
-        this.add_child(new St.Icon({
-            icon_name: 'audio-card-symbolic',
-            style_class: 'system-status-icon',
-        }));
+        // custom icon
+        const Me = Extension.lookupByURL(import.meta.url);
+        let iconPath = `${Me.path}/icons/pipewire-condensed-symbolic.svg`;
+        let gicon = Gio.icon_new_for_string(`${iconPath}`);
+        let icon = new St.Icon({ gicon: gicon, style_class: 'system-status-icon', icon_size: 16 });
+
+        this.add_child(icon);
 
         this.sampleRate = this._getSampleRate();
         this.bufferSize = this._getBufferSize();
