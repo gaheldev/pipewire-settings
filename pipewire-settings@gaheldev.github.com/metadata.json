@@ -3,6 +3,7 @@
   "description": "Set Pipewire's buffer size and samplerate",
   "uuid": "pipewire-settings@gaheldev.github.com",
   "shell-version": [
-    "46"
+    "46",
+    "47"
   ]
 }
