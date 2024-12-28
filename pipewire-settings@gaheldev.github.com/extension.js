@@ -141,39 +141,61 @@ class Indicator extends PanelMenu.Button {
     }
 
     _isForceSampleRate() {
-        let stdout = runCommand('pw-metadata', ['-n', 'settings', '0']);
-        const forceRateMatch = stdout.match(/clock\.force-rate\'\s*value:\'(\d+)/);
-        return forceRateMatch[1] !== '0';
+        return this._getForceRate() !== '0';
     }
 
     _isForceBufferSize() {
+        return this._getForceQuantum() !== '0';
+    }
+
+    _getForceRate() {
         let stdout = runCommand('pw-metadata', ['-n', 'settings', '0']);
-        const forceQuantumMatch = stdout.match(/clock\.force-quantum\'\s*value:\'(\d+)/);
-        return forceQuantumMatch[1] !== '0';
+        const forceRateMatch = stdout.match(/clock\.force-rate\'\s*value:\'(\d+)/);
+        const forceRate = forceRateMatch===null ? '0' : forceRateMatch[1];
+        return forceRate;
+    }
+
+    _getDefaultRate() {
+        let stdout = runCommand('pw-metadata', ['-n', 'settings', '0']);
+        const rateMatch = stdout.match(/clock\.rate\'\s*value:\'(\d+)/);
+        if (rateMatch !== null)
+            return rateMatch[1];
+        else
+            logError("Couldn't get pipewire's default rate");
     }
 
     /// return forced samplerate if defined, else default one
     _getSampleRate() {
+        const forceRate = this._getForceRate();
+        if (forceRate !== '0')
+            return forceRate;
+        else
+            return this._getDefaultRate();
+    }
+
+    _getForceQuantum() {
         let stdout = runCommand('pw-metadata', ['-n', 'settings', '0']);
-        const forceRateMatch = stdout.match(/clock\.force-rate\'\s*value:\'(\d+)/);
-        if (forceRateMatch[1] !== '0') {
-                return forceRateMatch[1];
-        } else {
-            const rateMatch = stdout.match(/clock\.rate\'\s*value:\'(\d+)/);
-            return rateMatch[1];
-        }
+        const forceQuantumMatch = stdout.match(/clock\.force-quantum\'\s*value:\'(\d+)/);
+        const forceQuantum = forceQuantumMatch===null ? '0' : forceQuantumMatch[1];
+        return forceQuantum;
+    }
+
+    _getDefaultQuantum() {
+        let stdout = runCommand('pw-metadata', ['-n', 'settings', '0']);
+        const quantumMatch = stdout.match(/clock\.quantum\'\s*value:\'(\d+)/);
+        if (quantumMatch !== null)
+            return quantumMatch[1];
+        else
+            logError("Couldn't get pipewire's default quantum");
     }
 
     /// return forced quantum if defined, else default one
     _getBufferSize() {
-        let stdout = runCommand('pw-metadata', ['-n', 'settings', '0']);
-        const forceQuantumMatch = stdout.match(/clock\.force-quantum\'\s*value:\'(\d+)/);
-        if (forceQuantumMatch[1] !== '0') {
-                return forceQuantumMatch[1];
-        } else {
-            const quantumMatch = stdout.match(/clock\.quantum\'\s*value:\'(\d+)/);
-            return quantumMatch[1];
-        }
+        const forceQuantum = this._getForceQuantum();
+        if (forceQuantum !== '0')
+            return forceQuantum;
+        else
+            return this._getDefaultQuantum();
     }
 
     _setSampleRate(rate) {
