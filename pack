@@ -1,0 +1,5 @@
+(
+mkdir -p release
+cd  pipewire-settings@gaheldev.github.com/
+zip ../release/pipewire-settings@gaheldev.github.com.shell-extension.zip *
+)
