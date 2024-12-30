@@ -79,8 +79,10 @@ export class PipewireConfig {
         const rateMatch = this.config.match(/clock\.rate\'\s*value:\'(\d+)/);
         if (rateMatch !== null)
             return rateMatch[1];
-        else
+        else {
             logError("Couldn't get pipewire's default rate");
+            return null;
+        }
     }
 
 
@@ -95,8 +97,10 @@ export class PipewireConfig {
         const quantumMatch = this.config.match(/clock\.quantum\'\s*value:\'(\d+)/);
         if (quantumMatch !== null)
             return quantumMatch[1];
-        else
+        else {
             logError("Couldn't get pipewire's default quantum");
+            return null;
+        }
     }
 
 
