@@ -49,7 +49,6 @@ export class PipewireConfig {
                 ['pw-metadata', '-n', 'settings', '0', 'clock.force-rate', `${rate}`],
                 Gio.SubprocessFlags.NONE
             );
-            this.update();
         } catch (e) {
             logError(e);
         }
@@ -63,7 +62,6 @@ export class PipewireConfig {
                 ['pw-metadata', '-n', 'settings', '0', 'clock.force-quantum', `${size}`],
                 Gio.SubprocessFlags.NONE
             );
-            this.update();
         } catch (e) {
             logError(e);
         }
