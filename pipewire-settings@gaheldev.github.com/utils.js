@@ -10,7 +10,7 @@ export function getGIcon(iconFile) {
 }
 
 
-// Function to run a command synchronously and wait for it to finish
+// Run a command synchronously and wait for it to finish
 export function runCommand(command, args) {
     let subprocess = new Gio.Subprocess({
         argv: [command, ...args],
