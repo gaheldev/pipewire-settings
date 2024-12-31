@@ -15,31 +15,28 @@ class PipewireTopBarMenu extends PanelMenu.Button {
         super._init(0.5, _('Pipewire settings menu'));
 
         this.metadata = extensionMetadata;
-
         this._addIcon();
 
         // pipewire config from command line
         this.config = new PipewireConfig();
 
-        // ---------- Samplerate -------------
+        // Samplerate submenu
         this.sampleRateItem = new PopupMenu.PopupSubMenuMenuItem('Samplerate');
         this.menu.addMenuItem(this.sampleRateItem);
+        this._populateSamplerates();
 
         // separator
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-        // ---------- Buffer size -------------
+        // Buffer size submenu
         this.bufferSizeItem = new PopupMenu.PopupSubMenuMenuItem('Buffer size');
         this.menu.addMenuItem(this.bufferSizeItem);
+        this._populateBuffers();
 
         // separator
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-        // ---------- Populate Submenus -------------
-        this._populateSamplerates();
-        this._populateBuffers();
-
-        // ---------- Restore defaults -------------
+        // Restore defaults button
         this.restoreItem = new PopupMenu.PopupMenuItem('Restore defaults');
         this.restoreItem.connect('activate', () => {this._restoreDefaults();});
         this.menu.addMenuItem(this.restoreItem);
