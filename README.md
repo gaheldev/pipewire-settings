@@ -7,7 +7,7 @@ Minimal pipewire configuration menu for Gnome Shell
 
 ## Installation
 ### Easy installation
-Use your favorite extension manager or [https://extensions.gnome.org/extension/7699/pipewire-settings/](the official website)
+Use your favorite extension manager or [the official website](https://extensions.gnome.org/extension/7699/pipewire-settings/).\
 It should work on your next login.
 
 ### Manual installation
