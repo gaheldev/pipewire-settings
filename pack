@@ -7,7 +7,7 @@ rm -r release/${output}
 
 (
 cd  pipewire-settings@gaheldev.github.com/
-zip ../release/${output} *
+zip -r ../release/${output} *
 )
 
 zip release/${output} LICENSE.md
