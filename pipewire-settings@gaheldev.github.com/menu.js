@@ -69,10 +69,12 @@ class PipewireTopBarMenu extends PanelMenu.Button {
         this._populateBuffers();
     }
 
+
     _restoreDefaults() {
         this.config.setSampleRate(0);
         this.config.setBufferSize(0);
     }
+
 
     _getSampleRateIcon(forceRate) {
         let ok = 'emblem-ok-symbolic';
@@ -86,6 +88,7 @@ class PipewireTopBarMenu extends PanelMenu.Button {
         else return nope;
     }
 
+
     _populateSamplerates() {
         this.config.allowedForceRates().forEach(rate => {
             let display = rate === '0' ? 'Dynamic (default)' : rate + ' Hz';
@@ -94,6 +97,7 @@ class PipewireTopBarMenu extends PanelMenu.Button {
             }, this._getSampleRateIcon(rate))
         });
     }
+
 
     _getBufferSizeIcon(forceSize) {
         let ok = 'emblem-ok-symbolic';
@@ -107,6 +111,7 @@ class PipewireTopBarMenu extends PanelMenu.Button {
         else return nope;
     }
 
+
     _populateBuffers() {
         this.config.allowedForceQuantums().forEach(size => {
             let display = size === '0' ? 'Dynamic (default)' : size;
@@ -115,6 +120,7 @@ class PipewireTopBarMenu extends PanelMenu.Button {
             }, this._getBufferSizeIcon(size))
         });
     }
+
 
     _updateMenu() {
         this.config.update();
