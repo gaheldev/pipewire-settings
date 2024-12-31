@@ -6,23 +6,17 @@ import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
 import {PipewireConfig} from './pwconfig.js';
-import {getGIcon} from './utils.js';
 
 
 
 export const PipewireTopBarMenu = GObject.registerClass(
 class PipewireTopBarMenu extends PanelMenu.Button {
-    _init() {
+    _init(extensionMetadata) {
         super._init(0.5, _('Pipewire settings menu'));
 
-        // custom icon
-        let icon = new St.Icon({
-            gicon: getGIcon('pipewire-condensed-symbolic.svg'),
-            style_class: 'system-status-icon',
-            icon_size: 16
-        });
+        this.metadata = extensionMetadata;
 
-        this.add_child(icon);
+        this._addIcon();
 
         // pipewire config from command line
         this.config = new PipewireConfig();
@@ -54,6 +48,19 @@ class PipewireTopBarMenu extends PanelMenu.Button {
         // workaround to avoid segmentation faults when using _resetActions
         this.menu.connect('open-state-changed', (menu, open) => { if (open) this._updateMenu(); });
     }
+
+
+    // custom icon to click in top bar
+    _addIcon() {
+        const iconPath = `${this.metadata.path}/icons/pipewire-condensed-symbolic.svg`;
+        let icon = new St.Icon({
+            gicon: Gio.icon_new_for_string(iconPath),
+            style_class: 'system-status-icon',
+            icon_size: 16
+        });
+        this.add_child(icon);
+    }
+
 
     _resetActions() {
         this.sampleRateItem.menu.removeAll();
