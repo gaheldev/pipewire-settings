@@ -6,6 +6,11 @@ Minimal pipewire configuration menu for Gnome Shell
 ![pipewire-settings-menu](https://github.com/user-attachments/assets/6b364340-4fd1-4007-9cde-e4c709a0d55c)
 
 ## Installation
+### Easy installation
+Use your favorite extension manager or [https://extensions.gnome.org/extension/7699/pipewire-settings/](the official website)
+It should work on your next login.
+
+### Manual installation
 Clone the project and simply run install:
 ```
 git clone https://github.com/gaheldev/pipewire-setting
