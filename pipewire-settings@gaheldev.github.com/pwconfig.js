@@ -32,7 +32,7 @@ export class PipewireConfig {
 
     // TODO: get actual allowed ones?
     allowedForceRates() {
-        return ['0', '44100', '48000', '88200', '96000'];
+        return ['0', '44100', '48000', '88200', '96000', '176000', '192000', '352800', '384000'];
     }
 
 
