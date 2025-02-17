@@ -24,7 +24,7 @@ import {PipewireTopBarMenu} from './menu.js';
 
 export default class PipewireSettingsExtension extends Extension {
     enable() {
-        this._topBarMenu = new PipewireTopBarMenu(this.metadata);
+        this._topBarMenu = new PipewireTopBarMenu(this.path);
         Main.panel.addToStatusArea(this.uuid, this._topBarMenu);
     }
 

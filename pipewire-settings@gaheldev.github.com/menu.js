@@ -11,10 +11,10 @@ import {PipewireConfig} from './pwconfig.js';
 
 export const PipewireTopBarMenu = GObject.registerClass(
 class PipewireTopBarMenu extends PanelMenu.Button {
-    _init(extensionMetadata) {
+    _init(extensionPath) {
         super._init(0.5, _('Pipewire settings menu'));
 
-        this.metadata = extensionMetadata;
+        this.path = extensionPath;
         this._addIcon();
 
         // pipewire config from command line
@@ -49,7 +49,7 @@ class PipewireTopBarMenu extends PanelMenu.Button {
 
     // custom icon to click in top bar
     _addIcon() {
-        const iconPath = `${this.metadata.path}/icons/pipewire-condensed-symbolic.svg`;
+        const iconPath = `${this.path}/icons/pipewire-condensed-symbolic.svg`;
         let icon = new St.Icon({
             gicon: Gio.icon_new_for_string(iconPath),
             style_class: 'system-status-icon',
