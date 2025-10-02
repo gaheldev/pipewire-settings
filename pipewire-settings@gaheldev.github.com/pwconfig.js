@@ -38,7 +38,7 @@ export class PipewireConfig {
 
     // TODO: get actual allowed ones?
     allowedForceQuantums() {
-        return ['0', '32', '64', '128', '256', '512', '1024', '2048'];
+        return ['0', '32', '48', '64', '96', '128', '256', '512', '1024', '2048'];
     }
 
 
