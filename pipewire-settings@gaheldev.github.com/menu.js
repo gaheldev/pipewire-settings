@@ -74,7 +74,7 @@ class PipewireTopBarMenu extends PanelMenu.Button {
 
 
     _getSampleRateIcon(forceRate) {
-        let ok = 'emblem-ok-symbolic';
+        let ok = 'check-plain-symbolic';
         let nope = 'goa-account-symbolic'; // goa is an empty icon -> probably a hack?
 
         if (!this.config.isForceSampleRate())
@@ -97,7 +97,7 @@ class PipewireTopBarMenu extends PanelMenu.Button {
 
 
     _getBufferSizeIcon(forceSize) {
-        let ok = 'emblem-ok-symbolic';
+        let ok = 'check-plain-symbolic';
         let nope = 'goa-account-symbolic'; // goa is an empty icon -> probably a hack?
 
         if (!this.config.isForceQuantum())
