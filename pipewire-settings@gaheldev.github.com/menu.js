@@ -36,6 +36,11 @@ class PipewireTopBarMenu extends PanelMenu.Button {
         // separator
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
+        // Persist changes toggle
+        this.persistChangesItem = new PopupMenu.PopupSwitchMenuItem("Persist settings", this.config.persistence, {});
+        this.persistChangesItem.connect('toggled', (item, state) => {this._persistChanges(state);});
+        this.menu.addMenuItem(this.persistChangesItem);
+
         // Restore defaults button
         this.restoreItem = new PopupMenu.PopupMenuItem('Restore defaults');
         this.restoreItem.connect('activate', () => {this._restoreDefaults();});
@@ -64,12 +69,19 @@ class PipewireTopBarMenu extends PanelMenu.Button {
         this.bufferSizeItem.menu.removeAll();
         this._populateSamplerates();
         this._populateBuffers();
+        this.persistChangesItem.state = this.config.persistence;
+    }
+
+
+    _persistChanges(persist) {
+        this.config.setPersistence(persist);
     }
 
 
     _restoreDefaults() {
         this.config.setSampleRate(0);
         this.config.setBufferSize(0);
+        this.config.setPersistence(false);
     }
 
 
@@ -129,7 +141,7 @@ class PipewireTopBarMenu extends PanelMenu.Button {
         this.bufferSizeItem.label.text = `Buffer size：${this.config.bufferSize}` + suffix;
 
         // only make restore button clickable when not in default settings
-        this.restoreItem.reactive = this.config.isForceSampleRate() || this.config.isForceQuantum();
+        this.restoreItem.reactive = this.config.isForceSampleRate() || this.config.isForceQuantum() || this.config.persistence;
 
         this._resetActions();
     }
