@@ -98,7 +98,7 @@ class PipewireTopBarMenu extends PanelMenu.Button {
         if (pipewireQuantumEnv === null) {
             this.envItem.label.text = 'PIPEWIRE_QUANTUM is not set';
         } else {
-            this.envItem.label.text = `PIPEWIRE_QUANTUM is set to ${pipewireQuantumEnv}\nJack applications will use it by default.\n Force settings to override it.`;
+            this.envItem.label.text = `PIPEWIRE_QUANTUM=${pipewireQuantumEnv}\n\nSome applications (Jack) will use it by default.\n Force settings to override it.`;
         }
     }
 
