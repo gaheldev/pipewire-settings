@@ -36,15 +36,17 @@ class PipewireTopBarMenu extends PanelMenu.Button {
         // separator
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
+        // Force settings toggle
+        this.forceSettingsItem = new PopupMenu.PopupSwitchMenuItem("Force settings", false, {});
+        this.forceSettingsItem.connect('toggled', (item, state) => {this._forceSettings(state);});
+        this.menu.addMenuItem(this.forceSettingsItem);
+
+        // TODO: add item to explain why that detects if PIPEWIRE_QUANTUM is set
+
         // Persist changes toggle
-        this.persistChangesItem = new PopupMenu.PopupSwitchMenuItem("Persist settings", this.config.persistence, {});
+        this.persistChangesItem = new PopupMenu.PopupSwitchMenuItem("Persist on restart", this.config.persistence, {});
         this.persistChangesItem.connect('toggled', (item, state) => {this._persistChanges(state);});
         this.menu.addMenuItem(this.persistChangesItem);
-
-        // Restore defaults button
-        this.restoreItem = new PopupMenu.PopupMenuItem('Restore defaults');
-        this.restoreItem.connect('activate', () => {this._restoreDefaults();});
-        this.menu.addMenuItem(this.restoreItem);
 
         // update samplerates and buffer sizes when the menu opens
         // workaround to avoid segmentation faults when using _resetActions
@@ -73,15 +75,13 @@ class PipewireTopBarMenu extends PanelMenu.Button {
     }
 
 
-    _persistChanges(persist) {
-        this.config.setPersistence(persist);
+    _forceSettings(force) {
+        this.config.setForce(force);
     }
 
 
-    _restoreDefaults() {
-        this.config.setSampleRate(0);
-        this.config.setBufferSize(0);
-        this.config.setPersistence(false);
+    _persistChanges(persist) {
+        this.config.setPersistence(persist);
     }
 
 
@@ -139,9 +139,6 @@ class PipewireTopBarMenu extends PanelMenu.Button {
 
         suffix = this.config.isForceQuantum() ? '' : ' (dyn)';
         this.bufferSizeItem.label.text = `Buffer size：${this.config.bufferSize}` + suffix;
-
-        // only make restore button clickable when not in default settings
-        this.restoreItem.reactive = this.config.isForceSampleRate() || this.config.isForceQuantum() || this.config.persistence;
 
         this._resetActions();
     }

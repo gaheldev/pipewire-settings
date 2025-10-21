@@ -7,6 +7,19 @@ import GLib from 'gi://GLib';
 export class PipewireConfig {
     constructor() {
         this.update();
+        this.force = false;
+
+        // delete former conf file that's been now been moved to pipewire.conf.d
+        const oldCustomConfigPath = GLib.build_filenamev([
+            GLib.get_user_config_dir(),
+            'pipewire',
+            "pwsettings-gnome-extension.conf"
+        ]);
+        const file = Gio.File.new_for_path(oldCustomConfigPath);
+
+        if (file.query_exists(null)) {
+            file.delete(null);
+        }
     }
 
 
@@ -14,20 +27,24 @@ export class PipewireConfig {
         this.config = this._getConfig();
         this.defaultRate = this._parseDefaultRate();
         this.forceRate = this._parseForceRate();
-        this.defaultQuantum = this._parseDefaultQuantum();;
+        this.defaultQuantum = this._parseDefaultQuantum();
         this.forceQuantum = this._parseForceQuantum();
         this.sampleRate = this.forceRate === '0' ? this.defaultRate : this.forceRate;
         this.bufferSize = this.forceQuantum === '0' ? this.defaultQuantum : this.forceQuantum;
 
         this.customConfigDir = GLib.build_filenamev([
             GLib.get_user_config_dir(),
-            'pipewire'
+            'pipewire',
+            'pipewire.conf.d'
         ]);
         this.customConfigPath = GLib.build_filenamev([
             this.customConfigDir,
             "pwsettings-gnome-extension.conf"
         ]);
         this.persistence = this._customConfigExists();
+
+        // TODO: add a check if PIPEWIRE_QUANTUM is set 
+        // an alternative would be to export PIPEWIRE_QUANTUM=$quantum/$rate in /etc/profile.d/
     }
 
 
@@ -53,14 +70,47 @@ export class PipewireConfig {
     }
 
 
+    setForce(force) {
+        this.force = force
+        this.setSampleRate(this.defaultRate)
+        this.setBufferSize(this.defaultQuantum)
+    }
+
+
     setSampleRate(rate) {
         try {
             // TODO: use runCommand instead
-            const proc = Gio.Subprocess.new(
-                ['pw-metadata', '-n', 'settings', '0', 'clock.force-rate', `${rate}`],
+
+            var proc;
+            if (rate !== '0' && rate !== 0) {
+                // set min rate
+                proc = Gio.Subprocess.new(
+                    ['pw-metadata', '-n', 'settings', '0', 'clock.min-rate', `${rate}`],
+                    Gio.SubprocessFlags.NONE
+                );
+
+                // set max rate
+                proc = Gio.Subprocess.new(
+                    ['pw-metadata', '-n', 'settings', '0', 'clock.max-rate', `${rate}`],
+                    Gio.SubprocessFlags.NONE
+                );
+
+                // set default rate
+                proc = Gio.Subprocess.new(
+                    ['pw-metadata', '-n', 'settings', '0', 'clock.rate', `${rate}`],
+                    Gio.SubprocessFlags.NONE
+                );
+                this.defaultRate = rate;
+            }
+
+            // force/unforce rate
+            const forcedRate = this.force ? rate : '0';
+            proc = Gio.Subprocess.new(
+                ['pw-metadata', '-n', 'settings', '0', 'clock.force-rate', `${forcedRate}`],
                 Gio.SubprocessFlags.NONE
             );
-            this.forceRate = rate;
+            this.forceRate = forcedRate;
+
             if (this.persistence) { this._writeConfigFile() };
         } catch (e) {
             logError(e);
@@ -71,11 +121,37 @@ export class PipewireConfig {
     setBufferSize(size) {
         try {
             // TODO: use runCommand instead
-            const proc = Gio.Subprocess.new(
-                ['pw-metadata', '-n', 'settings', '0', 'clock.force-quantum', `${size}`],
+
+            var proc;
+            if (size !== '0' && size !== 0) {
+                // set min quantum
+                proc = Gio.Subprocess.new(
+                    ['pw-metadata', '-n', 'settings', '0', 'clock.min-quantum', `${size}`],
+                    Gio.SubprocessFlags.NONE
+                );
+
+                // set max quantum
+                proc = Gio.Subprocess.new(
+                    ['pw-metadata', '-n', 'settings', '0', 'clock.max-quantum', `${size}`],
+                    Gio.SubprocessFlags.NONE
+                );
+
+                // set default quantum
+                proc = Gio.Subprocess.new(
+                    ['pw-metadata', '-n', 'settings', '0', 'clock.quantum', `${size}`],
+                    Gio.SubprocessFlags.NONE
+                );
+                this.defaultQuantum = size;
+            }
+
+            // force/unforce quantum
+            const forcedSize = this.force ? size : '0';
+            proc = Gio.Subprocess.new(
+                ['pw-metadata', '-n', 'settings', '0', 'clock.force-quantum', `${forcedSize}`],
                 Gio.SubprocessFlags.NONE
             );
-            this.forceQuantum = size;
+            this.forceQuantum = forcedSize;
+
             if (this.persistence) { this._writeConfigFile() };
         } catch (e) {
             logError(e);
@@ -145,10 +221,17 @@ export class PipewireConfig {
             dir.make_directory_with_parents(null);
         }
 
+        // when persisting changes, we constrain quantum rate by setting min and max to the value we want
+        // setting force-quantum in a config file is not supported
+        // setting default quantum only will not be respected whenever an application asks for more
         const configContent = `# Generated by pipewire-settings gnome extension - Do not edit.
 context.properties = {
-    default.clock.force-rate    = ${this.forceRate}
-    default.clock.force-quantum = ${this.forceQuantum}
+    default.clock.min-rate = ${this.sampleRate}
+    default.clock.rate = ${this.sampleRate}
+    default.clock.max-rate = ${this.sampleRate}
+    default.clock.min-quantum = ${this.bufferSize}
+    default.clock.quantum = ${this.bufferSize}
+    default.clock.max-quantum = ${this.bufferSize}
 }
 `;
 
