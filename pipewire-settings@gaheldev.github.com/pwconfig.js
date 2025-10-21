@@ -24,6 +24,7 @@ export class PipewireConfig {
 
 
     update() {
+        //FIXME: use only getters, to avoid side effects
         this.config = this._getConfig();
         this.defaultRate = this._parseDefaultRate();
         this.forceRate = this._parseForceRate();
@@ -42,9 +43,6 @@ export class PipewireConfig {
             "pwsettings-gnome-extension.conf"
         ]);
         this.persistence = this._customConfigExists();
-
-        // TODO: add a check if PIPEWIRE_QUANTUM is set 
-        // an alternative would be to export PIPEWIRE_QUANTUM=$quantum/$rate in /etc/profile.d/
     }
 
 
@@ -100,7 +98,6 @@ export class PipewireConfig {
                     ['pw-metadata', '-n', 'settings', '0', 'clock.rate', `${rate}`],
                     Gio.SubprocessFlags.NONE
                 );
-                this.defaultRate = rate;
             }
 
             // force/unforce rate
@@ -109,7 +106,6 @@ export class PipewireConfig {
                 ['pw-metadata', '-n', 'settings', '0', 'clock.force-rate', `${forcedRate}`],
                 Gio.SubprocessFlags.NONE
             );
-            this.forceRate = forcedRate;
 
             if (this.persistence) { this._writeConfigFile() };
         } catch (e) {
@@ -141,7 +137,6 @@ export class PipewireConfig {
                     ['pw-metadata', '-n', 'settings', '0', 'clock.quantum', `${size}`],
                     Gio.SubprocessFlags.NONE
                 );
-                this.defaultQuantum = size;
             }
 
             // force/unforce quantum
@@ -150,7 +145,6 @@ export class PipewireConfig {
                 ['pw-metadata', '-n', 'settings', '0', 'clock.force-quantum', `${forcedSize}`],
                 Gio.SubprocessFlags.NONE
             );
-            this.forceQuantum = forcedSize;
 
             if (this.persistence) { this._writeConfigFile() };
         } catch (e) {
@@ -216,6 +210,7 @@ export class PipewireConfig {
 
 
     _writeConfigFile() {
+        this.update();
         const dir = Gio.File.new_for_path(this.customConfigDir);
         if (!dir.query_exists(null)) {
             dir.make_directory_with_parents(null);

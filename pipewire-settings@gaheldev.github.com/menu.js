@@ -1,6 +1,7 @@
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
 
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
@@ -25,13 +26,22 @@ class PipewireTopBarMenu extends PanelMenu.Button {
         this.menu.addMenuItem(this.sampleRateItem);
         this._populateSamplerates();
 
-        // separator
-        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-
         // Buffer size submenu
         this.bufferSizeItem = new PopupMenu.PopupSubMenuMenuItem('Buffer size');
         this.menu.addMenuItem(this.bufferSizeItem);
         this._populateBuffers();
+
+        // separator
+        // this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
+        // PIPEWIRE_QUANTUM detection
+        this.envItem = new PopupMenu.PopupMenuItem("truc", {
+            can_focus: false,
+            hover: false,
+            reactive: false,
+        });
+        this.menu.addMenuItem(this.envItem);
+
 
         // separator
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
@@ -40,8 +50,6 @@ class PipewireTopBarMenu extends PanelMenu.Button {
         this.forceSettingsItem = new PopupMenu.PopupSwitchMenuItem("Force settings", false, {});
         this.forceSettingsItem.connect('toggled', (item, state) => {this._forceSettings(state);});
         this.menu.addMenuItem(this.forceSettingsItem);
-
-        // TODO: add item to explain why that detects if PIPEWIRE_QUANTUM is set
 
         // Persist changes toggle
         this.persistChangesItem = new PopupMenu.PopupSwitchMenuItem("Persist on restart", this.config.persistence, {});
@@ -82,6 +90,16 @@ class PipewireTopBarMenu extends PanelMenu.Button {
 
     _persistChanges(persist) {
         this.config.setPersistence(persist);
+    }
+
+
+    _updateEnvItem() {
+        let pipewireQuantumEnv = GLib.getenv('PIPEWIRE_QUANTUM');
+        if (pipewireQuantumEnv === null) {
+            this.envItem.label.text = 'PIPEWIRE_QUANTUM is not set';
+        } else {
+            this.envItem.label.text = `PIPEWIRE_QUANTUM is set to ${pipewireQuantumEnv}\nJack applications will use it by default.\n Force settings to override it.`;
+        }
     }
 
 
@@ -139,6 +157,8 @@ class PipewireTopBarMenu extends PanelMenu.Button {
 
         suffix = this.config.isForceQuantum() ? '' : ' (dyn)';
         this.bufferSizeItem.label.text = `Buffer size：${this.config.bufferSize}` + suffix;
+
+        this._updateEnvItem()
 
         this._resetActions();
     }
