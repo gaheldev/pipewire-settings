@@ -13,7 +13,7 @@ Use your favorite extension manager or [the official website](https://extensions
 ### Manual installation
 Clone the project and simply run install:
 ```
-git clone https://github.com/gaheldev/pipewire-setting
+git clone https://github.com/gaheldev/pipewire-settings
 cd pipewire-settings
 chmod +x install
 ./install
