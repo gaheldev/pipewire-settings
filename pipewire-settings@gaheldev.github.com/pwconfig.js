@@ -9,7 +9,7 @@ export class PipewireConfig {
         this.update();
         this.force = false;
 
-        // delete former conf file that's been now been moved to pipewire.conf.d
+        // delete former conf file that's now been moved to pipewire.conf.d
         this._deleteLegacyConfig();
     }
 
