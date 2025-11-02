@@ -31,9 +31,6 @@ class PipewireTopBarMenu extends PanelMenu.Button {
         this.menu.addMenuItem(this.bufferSizeItem);
         this._populateBuffers();
 
-        // separator
-        // this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-
         // PIPEWIRE_QUANTUM detection
         this.envItem = new PopupMenu.PopupMenuItem("placeholder title: set by _updateEnvItem", {
             can_focus: false,
