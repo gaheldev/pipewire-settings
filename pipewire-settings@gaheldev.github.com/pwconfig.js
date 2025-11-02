@@ -10,16 +10,7 @@ export class PipewireConfig {
         this.force = false;
 
         // delete former conf file that's been now been moved to pipewire.conf.d
-        const oldCustomConfigPath = GLib.build_filenamev([
-            GLib.get_user_config_dir(),
-            'pipewire',
-            "pwsettings-gnome-extension.conf"
-        ]);
-        const file = Gio.File.new_for_path(oldCustomConfigPath);
-
-        if (file.query_exists(null)) {
-            file.delete(null);
-        }
+        this._deleteLegacyConfig();
     }
 
 
@@ -258,6 +249,24 @@ context.properties = {
             }
         } catch (e) {
             logError('Failed to delete config:', e.message);
+        }
+    }
+
+
+    _deleteLegacyConfig() {
+        try {
+            const oldCustomConfigPath = GLib.build_filenamev([
+                GLib.get_user_config_dir(),
+                'pipewire',
+                "pwsettings-gnome-extension.conf"
+            ]);
+            const file = Gio.File.new_for_path(oldCustomConfigPath);
+
+            if (file.query_exists(null)) {
+                file.delete(null);
+            }
+        } catch (e) {
+            logError('Failed to delete legacy config:', e.message);
         }
     }
 }
