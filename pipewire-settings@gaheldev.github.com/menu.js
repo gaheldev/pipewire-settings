@@ -148,6 +148,11 @@ class PipewireTopBarMenu extends PanelMenu.Button {
 
     _updateMenu() {
         this.config.update();
+        if (!this.config.isPipewireMetadataAvailable) {
+            // TODO: show error message in menu
+            logError("[pipewire-settings] pipewire metadata is not available")
+            return;
+        }
 
         let suffix = this.config.isForceSampleRate() ? '' : ' (dyn)';
         this.sampleRateItem.label.text = `Samplerate：${this.config.sampleRate} Hz` + suffix;

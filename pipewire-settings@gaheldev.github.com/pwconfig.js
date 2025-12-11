@@ -6,17 +6,55 @@ import GLib from 'gi://GLib';
 
 export class PipewireConfig {
     constructor() {
-        this.update();
-        this.force = false;
+        this.isPipewireMetadataAvailable = false;
+        this.waitForPipewire(
+            (config) => {
+                this.isPipewireMetadataAvailable = true;
+                this.update();
+                this.force = false;
+            },
+            () => {
+                logError("[pipewire-settings] PipeWire did not respond after waiting. The extension may not work correctly.");
+            }
+        );
 
         // delete former conf file that's now been moved to pipewire.conf.d
         this._deleteLegacyConfig();
     }
 
 
+    // Check if pipewire config can be read, wait 1s of not
+    waitForPipewire(onSuccess, onFailure) {
+        var maxAttempts = 10;
+        var attempt = 0;
+        const delayMs = 1000;
+
+        const sourceId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, delayMs, () => {
+            const config = this._getConfig();
+
+            // pipewire is ready
+            if (config !== '') {
+                if (onSuccess) onSuccess(config);
+                return GLib.SOURCE_REMOVE;
+            }
+
+            attempt += 1
+            if (attempt >= maxAttempts) {
+                if (onFailure) onFailure();
+                return GLib.SOURCE_REMOVE;
+            }
+
+            return GLib.SOURCE_CONTINUE;
+        });
+    }
+
+
     update() {
         //FIXME: use only getters, to avoid side effects
         this.config = this._getConfig();
+        if (this.config === '')
+            return;
+
         this.defaultRate = this._parseDefaultRate();
         this.forceRate = this._parseForceRate();
         this.defaultQuantum = this._parseDefaultQuantum();
@@ -100,7 +138,7 @@ export class PipewireConfig {
 
             if (this.persistence) { this._writeConfigFile() };
         } catch (e) {
-            logError(e);
+            logError("[pipewire-settings] " + e);
         }
     }
 
@@ -139,7 +177,7 @@ export class PipewireConfig {
 
             if (this.persistence) { this._writeConfigFile() };
         } catch (e) {
-            logError(e);
+            logError("[pipewire-settings] " + e);
         }
     }
 
@@ -154,7 +192,13 @@ export class PipewireConfig {
 
 
     _getConfig() {
-        return runCommand('pw-metadata', ['-n', 'settings', '0']);
+        let config = '';
+        try {
+            config = runCommand('pw-metadata', ['-n', 'settings', '0']);
+        } catch(e) {
+            logError("[pipewire-settings] attempt to get pipewire metadata failed: " + e);
+        }
+        return config;
     }
 
 
@@ -163,7 +207,7 @@ export class PipewireConfig {
         if (rateMatch !== null)
             return rateMatch[1];
         else {
-            logError("Couldn't get pipewire's default rate");
+            logError("[pipewire-settings] Couldn't get pipewire's default rate");
             return null;
         }
     }
@@ -181,7 +225,7 @@ export class PipewireConfig {
         if (quantumMatch !== null)
             return quantumMatch[1];
         else {
-            logError("Couldn't get pipewire's default quantum");
+            logError("[pipewire-settings] Couldn't get pipewire's default quantum");
             return null;
         }
     }
@@ -232,10 +276,10 @@ context.properties = {
             );
 
             if (!success) {
-                logError(`Failed to write config: ${this.customConfigPath}`);
+                logError(`[pipewire-settings] Failed to write config: ${this.customConfigPath}`);
             }
         } catch (e) {
-            logError('Failed to write config:', e.message);
+            logError('[pipewire-settings] Failed to write config: ' + e);
         }
     }
 
@@ -248,7 +292,7 @@ context.properties = {
                 file.delete(null);
             }
         } catch (e) {
-            logError('Failed to delete config:', e.message);
+            logError('[pipewire-settings] Failed to delete config: ' + e);
         }
     }
 
@@ -266,7 +310,7 @@ context.properties = {
                 file.delete(null);
             }
         } catch (e) {
-            logError('Failed to delete legacy config:', e.message);
+            logError('[pipewire-settings] Failed to delete legacy config: ' + e);
         }
     }
 }
