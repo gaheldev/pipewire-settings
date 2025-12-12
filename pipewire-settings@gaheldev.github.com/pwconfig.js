@@ -6,18 +6,16 @@ import GLib from 'gi://GLib';
 
 export class PipewireConfig {
     constructor() {
-        this.isPipewireMetadataAvailable = false;
         this.waitForPipewire(
             (config) => {
-                this.isPipewireMetadataAvailable = true;
                 this.update();
-                this.force = false;
             },
             () => {
                 logError("[pipewire-settings] PipeWire did not respond after waiting. The extension may not work correctly.");
             }
         );
 
+        this.force = false;
         // delete former conf file that's now been moved to pipewire.conf.d
         this._deleteLegacyConfig();
     }
@@ -46,6 +44,13 @@ export class PipewireConfig {
 
             return GLib.SOURCE_CONTINUE;
         });
+    }
+
+
+    isPipewireMetadataAvailable() {
+        if (!this.config)
+            return false;
+        return this.config !== '';
     }
 
 

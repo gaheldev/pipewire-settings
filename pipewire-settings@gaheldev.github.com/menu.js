@@ -148,10 +148,25 @@ class PipewireTopBarMenu extends PanelMenu.Button {
 
     _updateMenu() {
         this.config.update();
-        if (!this.config.isPipewireMetadataAvailable) {
+        this._updateEnvItem()
+
+        if (!this.config.isPipewireMetadataAvailable()) {
             // TODO: show error message in menu
-            logError("[pipewire-settings] pipewire metadata is not available")
+            logError("[pipewire-settings] pipewire metadata is not available");
+            if (!this.errorItem) {
+                this.errorItem = new PopupMenu.PopupMenuItem("pw-metadata cannot be accessed, pipewire-setting will not work properly", {
+                    can_focus: false,
+                    hover: false,
+                    reactive: false,
+                });
+                this.menu.addMenuItem(this.errorItem);
+            }
             return;
+        }
+
+        if (this.errorItem) {
+            this.errorItem.destroy();
+            this.errorItem = null;
         }
 
         let suffix = this.config.isForceSampleRate() ? '' : ' (dyn)';
@@ -159,8 +174,6 @@ class PipewireTopBarMenu extends PanelMenu.Button {
 
         suffix = this.config.isForceQuantum() ? '' : ' (dyn)';
         this.bufferSizeItem.label.text = `Buffer size：${this.config.bufferSize}` + suffix;
-
-        this._updateEnvItem()
 
         this._resetActions();
     }
