@@ -6,6 +6,8 @@ import GLib from 'gi://GLib';
 
 export class PipewireConfig {
     constructor() {
+        this.sourceId = null;
+
         this.waitForPipewire(
             (config) => {
                 this.update();
@@ -15,11 +17,18 @@ export class PipewireConfig {
             }
         );
 
+
         this.force = false;
         // delete former conf file that's now been moved to pipewire.conf.d
         this._deleteLegacyConfig();
     }
 
+    removeTimeoutSource() {
+        if (this.sourceId) {
+            GLib.Source.remove(this.sourceId);
+            this.sourceId = null;
+        }
+    }
 
     // Check if pipewire config can be read, wait 1s of not
     waitForPipewire(onSuccess, onFailure) {
@@ -27,7 +36,10 @@ export class PipewireConfig {
         var attempt = 0;
         const delayMs = 1000;
 
-        const sourceId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, delayMs, () => {
+        // make sure potential preexisting loop source is removed
+        this.removeTimeoutSource();
+
+        this.sourceId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, delayMs, () => {
             const config = this._getConfig();
 
             // pipewire is ready

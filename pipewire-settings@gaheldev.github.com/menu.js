@@ -177,5 +177,10 @@ class PipewireTopBarMenu extends PanelMenu.Button {
 
         this._resetActions();
     }
+
+    destroy() {
+        super.destroy();
+        this.config.removeTimeoutSource();
+    }
 });
 
