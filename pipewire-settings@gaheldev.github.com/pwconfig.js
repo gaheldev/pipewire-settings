@@ -199,13 +199,13 @@ export class PipewireConfig {
 
 
     setSampleRate(rate) {
-        try {
-            if (rate !== '0' && rate !== 0) {
-                this.setMinSampleRate(rate);
-                this.setMaxSampleRate(rate);
-                this.setDefaultSampleRate(rate);
-            }
+        if (rate !== '0' && rate !== 0) {
+            this.setMinSampleRate(rate);
+            this.setMaxSampleRate(rate);
+            this.setDefaultSampleRate(rate);
+        }
 
+        try {
             // force/unforce rate
             const forcedRate = this.force ? rate : '0';
             runCommand('pw-metadata', ['-n', 'settings', '0', 'clock.force-rate', `${forcedRate}`]);
@@ -218,13 +218,13 @@ export class PipewireConfig {
 
 
     setBufferSize(size) {
-        try {
-            if (size !== '0' && size !== 0) {
-                this.setMinQuantum(size);
-                this.setMaxQuantum(size);
-                this.setDefaultQuantum(size);
-            }
+        if (size !== '0' && size !== 0) {
+            this.setMinQuantum(size);
+            this.setMaxQuantum(size);
+            this.setDefaultQuantum(size);
+        }
 
+        try {
             // force/unforce quantum
             const forcedSize = this.force ? size : '0';
             runCommand('pw-metadata', ['-n', 'settings', '0', 'clock.force-quantum', `${forcedSize}`]);
@@ -237,10 +237,10 @@ export class PipewireConfig {
 
 
     resetSampleRate() {
-        try {
-            // FIXME: parse allowed rates to choose a default
-            this.setDefaultSampleRate(48000);
+        // FIXME: parse allowed rates to choose a default
+        this.setDefaultSampleRate(48000);
 
+        try {
             // delete min-rate and max-rate settings
             runCommand('pw-metadata', ['-n', 'settings', '0', '-d', 'clock.min-rate']);
             runCommand('pw-metadata', ['-n', 'settings', '0', '-d', 'clock.max-rate']);
@@ -254,15 +254,11 @@ export class PipewireConfig {
 
     // Setting back pipewire's defaults
     resetQuantum() {
-        try {
-            this.setMinQuantum(32);
-            this.setMaxQuantum(2048);
-            this.setDefaultQuantum(1024);
+        this.setMinQuantum(32);
+        this.setMaxQuantum(2048);
+        this.setDefaultQuantum(1024);
 
-            if (this.persistence) { this._writeConfigFile() };
-        } catch (e) {
-            logError("[pipewire-settings] " + e);
-        }
+        if (this.persistence) { this._writeConfigFile() };
     }
 
 
