@@ -72,10 +72,16 @@ export class PipewireConfig {
         if (this.config === '')
             return;
 
+        this.minRate = this._parseMinRate();
+        this.maxRate = this._parseMaxRate();
         this.defaultRate = this._parseDefaultRate();
         this.forceRate = this._parseForceRate();
+
+        this.minQuantum = this._parseMinQuantum();
+        this.maxQuantum = this._parseMaxQuantum();
         this.defaultQuantum = this._parseDefaultQuantum();
         this.forceQuantum = this._parseForceQuantum();
+
         this.sampleRate = this.forceRate === '0' ? this.defaultRate : this.forceRate;
         this.bufferSize = this.forceQuantum === '0' ? this.defaultQuantum : this.forceQuantum;
 
@@ -89,6 +95,22 @@ export class PipewireConfig {
             "pwsettings-gnome-extension.conf"
         ]);
         this.persistence = this._customConfigExists();
+    }
+
+
+    isSampleRateSet() {
+        if (this.isForceSampleRate()) {
+            return true;
+        }
+        return this.defaultRate === this.minRate && this.minRate === this.maxRate;
+    }
+
+
+    isQuantumSet() {
+        if (this.isForceQuantum()) {
+            return true;
+        }
+        return this.defaultQuantum === this.minQuantum && this.minQuantum === this.maxQuantum;
     }
 
 
@@ -219,6 +241,28 @@ export class PipewireConfig {
     }
 
 
+    _parseMinRate() {
+        const rateMatch = this.config.match(/clock\.min-rate\'\s*value:\'(\d+)/);
+        if (rateMatch !== null)
+            return rateMatch[1];
+        else {
+            logError("[pipewire-settings] Couldn't get pipewire's minimum rate");
+            return null;
+        }
+    }
+
+
+    _parseMaxRate() {
+        const rateMatch = this.config.match(/clock\.max-rate\'\s*value:\'(\d+)/);
+        if (rateMatch !== null)
+            return rateMatch[1];
+        else {
+            logError("[pipewire-settings] Couldn't get pipewire's maximum rate");
+            return null;
+        }
+    }
+
+
     _parseDefaultRate() {
         const rateMatch = this.config.match(/clock\.rate\'\s*value:\'(\d+)/);
         if (rateMatch !== null)
@@ -234,6 +278,28 @@ export class PipewireConfig {
         const forceRateMatch = this.config.match(/clock\.force-rate\'\s*value:\'(\d+)/);
         const forceRate = forceRateMatch===null ? '0' : forceRateMatch[1];
         return forceRate;
+    }
+
+
+    _parseMinQuantum() {
+        const quantumMatch = this.config.match(/clock\.min-quantum\'\s*value:\'(\d+)/);
+        if (quantumMatch !== null)
+            return quantumMatch[1];
+        else {
+            logError("[pipewire-settings] Couldn't get pipewire's minimum quantum");
+            return null;
+        }
+    }
+
+
+    _parseMaxQuantum() {
+        const quantumMatch = this.config.match(/clock\.max-quantum\'\s*value:\'(\d+)/);
+        if (quantumMatch !== null)
+            return quantumMatch[1];
+        else {
+            logError("[pipewire-settings] Couldn't get pipewire's maximum quantum");
+            return null;
+        }
     }
 
 

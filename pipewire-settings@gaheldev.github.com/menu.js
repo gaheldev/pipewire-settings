@@ -100,22 +100,22 @@ class PipewireTopBarMenu extends PanelMenu.Button {
     }
 
 
-    _getSampleRateIcon(forceRate) {
+    _getSampleRateIcon(sampleRate) {
         let ok = 'check-plain-symbolic';
         let nope = 'goa-account-symbolic'; // goa is an empty icon -> probably a hack?
 
-        if (!this.config.isForceSampleRate())
-            if (forceRate === '0') return ok;
+        if (!this.config.isSampleRateSet())
+            if (sampleRate === '0') return ok;
             else return nope;
 
-        if (forceRate === this.config.sampleRate) return ok;
+        if (sampleRate === this.config.sampleRate) return ok;
         else return nope;
     }
 
 
     _populateSamplerates() {
         this.config.allowedForceRates().forEach(rate => {
-            let display = rate === '0' ? 'Dynamic (default)' : rate + ' Hz';
+            let display = rate === '0' ? 'Default (dynamic)' : rate + ' Hz';
             this.sampleRateItem.menu.addAction(display, () => {
                 this.config.setSampleRate(parseInt(rate));
             }, this._getSampleRateIcon(rate))
@@ -123,22 +123,22 @@ class PipewireTopBarMenu extends PanelMenu.Button {
     }
 
 
-    _getBufferSizeIcon(forceSize) {
+    _getBufferSizeIcon(quantumSize) {
         let ok = 'check-plain-symbolic';
         let nope = 'goa-account-symbolic'; // goa is an empty icon -> probably a hack?
 
-        if (!this.config.isForceQuantum())
-            if (forceSize === '0') return ok;
+        if (!this.config.isQuantumSet())
+            if (quantumSize === '0') return ok;
             else return nope;
 
-        if (forceSize === this.config.bufferSize) return ok;
+        if (quantumSize === this.config.bufferSize) return ok;
         else return nope;
     }
 
 
     _populateBuffers() {
         this.config.allowedForceQuantums().forEach(size => {
-            let display = size === '0' ? 'Dynamic (default)' : size;
+            let display = size === '0' ? 'Default (dynamic)' : size;
             this.bufferSizeItem.menu.addAction(display, () => {
                 this.config.setBufferSize(parseInt(size));
             }, this._getBufferSizeIcon(size))
