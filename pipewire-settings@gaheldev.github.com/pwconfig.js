@@ -82,6 +82,7 @@ export class PipewireConfig {
         this.defaultQuantum = this._parseDefaultQuantum();
         this.forceQuantum = this._parseForceQuantum();
 
+        // FIXME: find a way to get the actual current rate and quantum from pipewire, as they do not necessarily follow configuration
         this.sampleRate = this.forceRate === '0' ? this.defaultRate : this.forceRate;
         this.bufferSize = this.forceQuantum === '0' ? this.defaultQuantum : this.forceQuantum;
 
@@ -143,34 +144,71 @@ export class PipewireConfig {
     }
 
 
+    setMinSampleRate(rate) {
+        try {
+            runCommand('pw-metadata', ['-n', 'settings', '0', 'clock.min-rate', `${rate}`]);
+        } catch(e) {
+            logError("[pipewire-settings]" + e);
+        }
+    }
+
+
+    setMaxSampleRate(rate) {
+        try {
+            runCommand('pw-metadata', ['-n', 'settings', '0', 'clock.max-rate', `${rate}`]);
+        } catch(e) {
+            logError("[pipewire-settings]" + e);
+        }
+    }
+
+
+    setDefaultSampleRate(rate) {
+        try {
+            runCommand('pw-metadata', ['-n', 'settings', '0', 'clock.rate', `${rate}`]);
+        } catch(e) {
+            logError("[pipewire-settings]" + e);
+        }
+    }
+
+
+    setMinQuantum(size) {
+        try {
+            runCommand('pw-metadata', ['-n', 'settings', '0', 'clock.min-quantum', `${size}`]);
+        } catch(e) {
+            logError("[pipewire-settings]" + e);
+        }
+    }
+
+
+    setMaxQuantum(size) {
+        try {
+            runCommand('pw-metadata', ['-n', 'settings', '0', 'clock.max-quantum', `${size}`]);
+        } catch(e) {
+            logError("[pipewire-settings]" + e);
+        }
+    }
+
+
+    setDefaultQuantum(size) {
+        try {
+            runCommand('pw-metadata', ['-n', 'settings', '0', 'clock.quantum', `${size}`]);
+        } catch(e) {
+            logError("[pipewire-settings]" + e);
+        }
+    }
+
+
     setSampleRate(rate) {
         try {
-            // TODO: use runCommand instead
-
-            var proc;
             if (rate !== '0' && rate !== 0) {
-                // set min rate
-                proc = Gio.Subprocess.new(
-                    ['pw-metadata', '-n', 'settings', '0', 'clock.min-rate', `${rate}`],
-                    Gio.SubprocessFlags.NONE
-                );
-
-                // set max rate
-                proc = Gio.Subprocess.new(
-                    ['pw-metadata', '-n', 'settings', '0', 'clock.max-rate', `${rate}`],
-                    Gio.SubprocessFlags.NONE
-                );
-
-                // set default rate
-                proc = Gio.Subprocess.new(
-                    ['pw-metadata', '-n', 'settings', '0', 'clock.rate', `${rate}`],
-                    Gio.SubprocessFlags.NONE
-                );
+                this.setMinSampleRate(rate);
+                this.setMaxSampleRate(rate);
+                this.setDefaultSampleRate(rate);
             }
 
             // force/unforce rate
             const forcedRate = this.force ? rate : '0';
-            proc = Gio.Subprocess.new(
+            var proc = Gio.Subprocess.new(
                 ['pw-metadata', '-n', 'settings', '0', 'clock.force-rate', `${forcedRate}`],
                 Gio.SubprocessFlags.NONE
             );
@@ -184,35 +222,48 @@ export class PipewireConfig {
 
     setBufferSize(size) {
         try {
-            // TODO: use runCommand instead
-
-            var proc;
             if (size !== '0' && size !== 0) {
-                // set min quantum
-                proc = Gio.Subprocess.new(
-                    ['pw-metadata', '-n', 'settings', '0', 'clock.min-quantum', `${size}`],
-                    Gio.SubprocessFlags.NONE
-                );
-
-                // set max quantum
-                proc = Gio.Subprocess.new(
-                    ['pw-metadata', '-n', 'settings', '0', 'clock.max-quantum', `${size}`],
-                    Gio.SubprocessFlags.NONE
-                );
-
-                // set default quantum
-                proc = Gio.Subprocess.new(
-                    ['pw-metadata', '-n', 'settings', '0', 'clock.quantum', `${size}`],
-                    Gio.SubprocessFlags.NONE
-                );
+                this.setMinQuantum(size);
+                this.setMaxQuantum(size);
+                this.setDefaultQuantum(size);
             }
 
             // force/unforce quantum
             const forcedSize = this.force ? size : '0';
-            proc = Gio.Subprocess.new(
+            var proc = Gio.Subprocess.new(
                 ['pw-metadata', '-n', 'settings', '0', 'clock.force-quantum', `${forcedSize}`],
                 Gio.SubprocessFlags.NONE
             );
+
+            if (this.persistence) { this._writeConfigFile() };
+        } catch (e) {
+            logError("[pipewire-settings] " + e);
+        }
+    }
+
+
+    resetSampleRate() {
+        try {
+            // FIXME: parse allowed rates to choose a default
+            this.setDefaultSampleRate(48000);
+
+            // delete min-rate and max-rate settings
+            runCommand('pw-metadata', ['-n', 'settings', '0', '-d', 'clock.min-rate']);
+            runCommand('pw-metadata', ['-n', 'settings', '0', '-d', 'clock.max-rate']);
+
+            if (this.persistence) { this._writeConfigFile() };
+        } catch (e) {
+            logError("[pipewire-settings] " + e);
+        }
+    }
+
+
+    // Setting back pipewire's defaults
+    resetQuantum() {
+        try {
+            this.setMinQuantum(32);
+            this.setMaxQuantum(2048);
+            this.setDefaultQuantum(1024);
 
             if (this.persistence) { this._writeConfigFile() };
         } catch (e) {

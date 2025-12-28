@@ -117,7 +117,11 @@ class PipewireTopBarMenu extends PanelMenu.Button {
         this.config.allowedForceRates().forEach(rate => {
             let display = rate === '0' ? 'Default (dynamic)' : rate + ' Hz';
             this.sampleRateItem.menu.addAction(display, () => {
-                this.config.setSampleRate(parseInt(rate));
+                if (rate === '0') {
+                    this.config.resetSampleRate();
+                } else {
+                    this.config.setSampleRate(parseInt(rate));
+                }
             }, this._getSampleRateIcon(rate))
         });
     }
@@ -140,7 +144,11 @@ class PipewireTopBarMenu extends PanelMenu.Button {
         this.config.allowedForceQuantums().forEach(size => {
             let display = size === '0' ? 'Default (dynamic)' : size;
             this.bufferSizeItem.menu.addAction(display, () => {
-                this.config.setBufferSize(parseInt(size));
+                if (size === '0') {
+                    this.config.resetQuantum();
+                } else {
+                    this.config.setBufferSize(parseInt(size));
+                }
             }, this._getBufferSizeIcon(size))
         });
     }
