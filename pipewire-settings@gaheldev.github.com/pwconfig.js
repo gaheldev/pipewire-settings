@@ -208,10 +208,7 @@ export class PipewireConfig {
 
             // force/unforce rate
             const forcedRate = this.force ? rate : '0';
-            var proc = Gio.Subprocess.new(
-                ['pw-metadata', '-n', 'settings', '0', 'clock.force-rate', `${forcedRate}`],
-                Gio.SubprocessFlags.NONE
-            );
+            runCommand('pw-metadata', ['-n', 'settings', '0', 'clock.force-rate', `${forcedRate}`]);
 
             if (this.persistence) { this._writeConfigFile() };
         } catch (e) {
@@ -230,10 +227,7 @@ export class PipewireConfig {
 
             // force/unforce quantum
             const forcedSize = this.force ? size : '0';
-            var proc = Gio.Subprocess.new(
-                ['pw-metadata', '-n', 'settings', '0', 'clock.force-quantum', `${forcedSize}`],
-                Gio.SubprocessFlags.NONE
-            );
+            runCommand('pw-metadata', ['-n', 'settings', '0', 'clock.force-quantum', `${forcedSize}`]);
 
             if (this.persistence) { this._writeConfigFile() };
         } catch (e) {
